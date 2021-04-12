@@ -1,0 +1,74 @@
+
+
+module Vitesse(
+	input logic a,
+	input logic b,
+	input logic c,
+	input logic d,
+	input logic clk,
+	input logic reset,
+	output [31:0] res);
+	
+	reg SpeedReset = 0;
+	
+	reg [15:0] counterA = 0;
+	reg [15:0] counterB = 0;
+	reg [15:0] counterC = 0;
+	reg [15:0] counterD = 0;
+	
+	reg [15:0] ResLeft = 0;
+	reg [15:0] ResRight= 0;
+	
+	reg [31:0] Time=0;
+	
+	always_ff @(posedge clk, posedge reset)
+		begin
+			if(reset)
+				begin
+					ResLeft <= 0;
+					ResRight<= 0;
+				end
+			else
+				begin
+					case(Time)
+						32'd100000:	begin		
+											Time <= 0;
+											SpeedReset <= 1;
+											ResLeft <= counterA + counterB;
+											ResRight <= counterC + counterD;
+										end																			
+						default:	begin
+										Time <= Time + 1;
+										SpeedReset <= 0;
+									end
+					endcase
+				end
+		end
+					
+	always @(posedge a or posedge SpeedReset)
+		if(SpeedReset)
+			counterA<= 0;
+		else
+			counterA <= counterA + 1;
+	
+	always @(posedge b or posedge SpeedReset)
+		if(SpeedReset)
+			counterB<= 0;
+		else
+			counterB <= counterB + 1;
+		
+	always @(posedge c or posedge SpeedReset)
+		if(SpeedReset)
+			counterC<= 0;
+		else
+			counterC <= counterC + 1;
+		
+	always @(posedge d or posedge SpeedReset)
+		if(SpeedReset)
+			counterD<= 0;
+		else
+		counterD <= counterD + 1;
+	
+	assign res = {ResLeft, ResRight};
+
+endmodule

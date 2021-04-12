@@ -1,0 +1,316 @@
+/* ------------------------------------------------------------------------------------------------ */
+
+#define MYAPP
+
+#include "MyApp_mAbassi.h"
+
+#include "mAbassi.h"          /* MUST include "SAL.H" and not uAbassi.h        */
+#include "Platform.h"         /* Everything about the target platform is here  */
+#include "HWinfo.h"           /* Everything about the target hardware is here  */
+#include "dw_i2c.h"
+#include "dw_uart.h"
+#include "MyDriver_CAN.h"
+#include "PID.h"
+#include "CtrlStruct.h"
+#include <stdio.h>
+#include <unistd.h>
+#include "odometry.h"
+#include "path_planning.h"
+#include "Real_localisation.h"
+
+/* PROJET */
+
+void Task_Main(void){
+	 CAN_initial();
+	 CtrlStruct* cvs = init_CtrlStruct();
+	 init_speed_reg(cvs);
+	 ctrl_motor();
+	 push_propDC(0,0);
+	 for(;;){
+		 speed_regulation(cvs,0.1/0.03,0.1/0.03);
+	 }
+//	 speed_regulation(cvs,0,0);
+//   init_odometry(cvs);
+//   update_realposition(cvs);
+//   init_path(cvs);
+//
+//   for(;;){
+//    	speed_regulation(cvs,0.1/0.03,0.1/0.03);
+//    	update_odometry(cvs);
+//    	update_realposition(cvs);
+//    	//planning(cvs, -0.35, 0.0);
+//   }
+}
+
+
+
+
+
+void deploy_clamps(void){
+	endless_turn(0x3ff, 0x04, 1);
+	set_torque(0x04, 1023);
+	TSKsleep(OS_MS_TO_TICK(3800));
+	endless_turn(0, 0x04, 1);
+}
+void reploy_clamps(void){
+	endless_turn(0x3ff, 0x04, 0);
+	set_torque(0x04, 1023);
+	TSKsleep(OS_MS_TO_TICK(4050));
+	endless_turn(0, 0x04, 0);
+}
+void endless_turn(uint16_t speed, Byte ID, int sens){
+	send_packet(ID,0x05,0x03,CW_ANGLE_LIMIT_REG, 0);
+	send_packet(ID,0x05,0x03,CCW_ANGLE_LIMIT_REG, 0);
+	if(sens == 1){ // CW
+		uint16_t value = (0b000001 << 10) | speed;
+		send_packet(ID,0x05,0x03,MOVING_SPEED_REG, value);
+	}
+	else{
+		uint16_t value = (0b000000 << 10) | speed;
+		send_packet(ID,0x05,0x03,MOVING_SPEED_REG, value);
+	}
+}
+void ctrl_motor(void){
+	uint32_t tx_Identifier, rx_Identifier;
+	uint8_t  tx_Data[8],    rx_Data[8];
+	uint8_t  tx_Length,     rx_Length;
+	uint8_t  tx_FrameType;
+	int rx, tx;
+
+	tx_Identifier = 0x408;
+	tx_Length     = 3;
+	tx_Data[0] = 0x1E;
+	tx_Data[1] = 0x30;
+	tx_Data[2] = 0x00;
+	CAN_sendMsg(tx_Identifier,tx_Data, tx_Length, MCP2515_TX_STD_FRAME);
+	//TSKsleep(10);
+	rx = CAN_readMsg(&rx_Identifier, rx_Data, &rx_Length);
+	//TSKsleep(10);
+}
+void push_propDC(int dD, int dG){
+	uint32_t tx_Identifier, rx_Identifier;
+	uint8_t  tx_Data[8],    rx_Data[8];
+	uint8_t  tx_Length,     rx_Length;
+	uint8_t  tx_FrameType;
+	int rx;
+
+	tx_Identifier = 0x408;
+	uint8_t dcGc = (128*(dG+7)/100.0 +128);
+	uint8_t dcDc = (128*(dD+7)/100.0 +128);
+	tx_Length     = 3;
+	tx_Data[0] = 0x25;
+	tx_Data[1] = 0xFF;
+	tx_Data[2] = dcGc >> 2;
+	CAN_sendMsg(tx_Identifier,tx_Data, tx_Length,MCP2515_TX_STD_FRAME);
+	//TSKsleep(1);
+	rx = CAN_readMsg(&rx_Identifier, rx_Data, &rx_Length);
+
+	tx_Data[0] = 0x26;
+	tx_Data[1] = 0xFF;
+	tx_Data[2] = dcDc >> 2;
+	CAN_sendMsg(tx_Identifier,tx_Data, tx_Length,MCP2515_TX_STD_FRAME);
+	//TSKsleep(1);
+	rx = CAN_readMsg(&rx_Identifier, rx_Data, &rx_Length);
+	//TSKsleep(1);
+}
+void CAN_initial(void){
+	SEMwait(SEMopen("SemSetup"), -1);
+	DE0_SELECT_LT_SPI();
+	CAN_init();
+}
+void deploy_right_arm(void){
+	set_speed(0x03, 500);
+	set_position(0x03, 1024*30/300);
+	TSKsleep(500);
+	set_torque(0x03, 50);
+}
+void reploy_right_arm(void){
+	set_speed(0x03, 500);
+	set_position(0x03, 1024*115/300);
+	set_torque(0x03, 1023);
+	TSKsleep(50);
+}
+void deploy_left_arm(void){
+	set_speed(0x06, 300);
+	set_position(0x06, 1023*300/300);
+	TSKsleep(500);
+	set_torque(0x06, 50);
+}
+void reploy_left_arm(void){
+	set_speed(0x06, 300);
+	set_position(0x06, 1023*215/300);
+	set_torque(0x06, 1023);
+	TSKsleep(50);
+}
+void set_torque(Byte ID, uint16_t value){
+	send_packet(ID,0x05,0x03,TORQUE_LIMIT_REG, value);
+}
+void set_speed(Byte ID, uint16_t speed){
+	send_packet(ID,0x05,0x03,MOVING_SPEED_REG, speed);
+}
+void set_position(Byte ID, uint16_t position){
+	send_packet(ID,0x05,0x03,GOAL_POSITION_REG, position);
+}
+
+
+
+void get_packet(void){
+	uint32_t data0;
+	uint32_t data1;
+	uint32_t data2;
+	uint32_t data3;
+	alt_write_word(fpga_rw_ad, 0b100);
+	alt_write_word(fpga_read, 1);
+	data0 = alt_read_word(fpga_read_data_RX);
+	if(data0 == 1){
+		printf("TX done !\n");
+	}
+	else{
+		printf("TX Failed !\n");
+	}
+	alt_write_word(fpga_rw_ad, 0b001);
+	data1 = alt_read_word(fpga_read_data_RX);
+	alt_write_word(fpga_rw_ad, 0b010);
+	data2 = alt_read_word(fpga_read_data_RX);
+	alt_write_word(fpga_rw_ad, 0b000);
+	data3 = alt_read_word(fpga_read_data_RX);
+	if(data3 == 1){
+		printf("RX done !\n");
+	}
+	else{
+		printf("RX Failed! \n");
+	}
+	printf("\n");
+	alt_write_word(fpga_read, 0);
+}
+void send_packet(Byte ID, Byte Length, Byte Instruction, Byte address, uint16_t value){
+	for(int i=0; i<2; i++){
+		uint32_t word_1 = get_packet_1(ID,Length,Instruction,address,value);
+		uint32_t word_2 = get_packet_2(address,value);
+		alt_write_word(fpga_reset, 1);
+		alt_write_word(fpga_reset, 0);
+		alt_write_word(fpga_write, 1);
+		alt_write_word(fpga_rw_ad, 0b101);
+		alt_write_word(fpga_write_data_TX,word_1);
+		//printf("data1 = %x \n", alt_read_word(fpga_write_data_TX));
+		alt_write_word(fpga_rw_ad, 0b110);
+		alt_write_word(fpga_write_data_TX,word_2);
+		//printf("data1 = %x \n", alt_read_word(fpga_write_data_TX));
+		alt_write_word(fpga_rw_ad, 0b100);	//added
+		TSKsleep(OS_MS_TO_TICK(100));		//added
+		alt_write_word(fpga_write, 0);
+		//alt_write_word(fpga_read, 1);
+		//alt_write_word(fpga_read, 0);
+		get_packet();
+		TSKsleep(OS_MS_TO_TICK(100));
+	}
+}
+uint32_t get_packet_1(Byte ID, Byte Length, Byte Instruction, Byte address, uint16_t value){
+	Byte P1 = address;
+	uint16_t P2 = (value & 0b0000000011111111);
+	Byte P3 = value >> 8;
+	Byte Checksum = ~(ID + Length + Instruction + P1 + P2 + P3);
+	uint32_t word_1 = (Checksum << 24) | (Instruction << 16) | (Length << 8) | (ID);
+	return word_1;
+}
+uint32_t get_packet_2(Byte address, uint16_t value){
+	Byte zero = 0;
+	Byte P1 = address;
+	uint16_t P2 = (value & 0b0000000011111111);
+	Byte P3 = value >> 8;
+	uint32_t word_2 = (zero << 24) | (P3 << 16) | (P2 << 8) | (P1);
+	return word_2;
+}
+void Task_FPGA_Button(void){
+
+    MBX_t    *PrtMbx;
+    intptr_t  PtrMsg = (intptr_t) NULL;
+    SEM_t    *PtrSem;
+
+    PrtMbx = MBXopen("MyMailbox", 128);
+    PtrSem = SEMopen("MySemaphore");
+
+    for( ;; )
+    {
+        SEMwait(PtrSem, -1);            // -1 = Infinite blocking
+        SEMreset(PtrSem);
+        MTXLOCK_STDIO();
+        int button = (int) alt_read_word(fpga_buttons) - 1;
+        printf("Receive IRQ from Button %d\n", button);  // The Keys O and 1 seem to be inverted somewhere...
+        toogle_FPGA_LED(button);
+        MTXUNLOCK_STDIO();
+
+        MBXput(PrtMbx, PtrMsg, -1);     // -1 = Infinite blocking
+    }
+}
+void spi_CallbackInterrupt (uint32_t icciar, void *context){
+
+    // Do something
+    MTXLOCK_STDIO();
+    printf("INFO: IRQ from SPI : %08x (status = %x)\r\n",
+        (unsigned int) alt_read_word(fpga_spi + SPI_RXDATA),
+        (unsigned int) alt_read_word(fpga_spi + SPI_STATUS));
+    MTXUNLOCK_STDIO();
+    alt_write_word(fpga_spi + SPI_TXDATA, 0x113377FF);
+
+    // Clear the status of SPI core
+    alt_write_word(fpga_spi + SPI_STATUS, 0x00);
+}
+void button_CallbackInterrupt (uint32_t icciar, void *context){
+    SEM_t    *PtrSem;
+
+    // Clear the interruptmask of PIO core
+    alt_write_word(fpga_buttons + PIOinterruptmask, 0x0);
+
+    // Enable the interruptmask and edge register of PIO core for new interrupt
+    alt_write_word(fpga_buttons + PIOinterruptmask, 0x3);
+    alt_write_word(fpga_buttons + PIOedgecapture, 0x3);
+
+    PtrSem = SEMopen("MySemaphore");
+    SEMpost(PtrSem);
+}
+void setup_Interrupt( void ){
+    // IRQ from Key0 and Key1
+    OSisrInstall(GPT_BUTTON_IRQ, (void *) &button_CallbackInterrupt);
+    GICenable(GPT_BUTTON_IRQ, 128, 1);
+
+    // Enable interruptmask and edgecapture of PIO core for buttons 0 and 1
+    alt_write_word(fpga_buttons + PIOinterruptmask, 0x3);
+    alt_write_word(fpga_buttons + PIOedgecapture, 0x3);
+
+    // IRQ from SPI slave connected to the RaspberryPI
+    OSisrInstall(GPT_SPI_IRQ, (void *) &spi_CallbackInterrupt);
+    GICenable(GPT_SPI_IRQ, 128, 1);
+
+    // Initialize TXDATA to something (for testing purpose)
+    alt_write_word(fpga_spi + SPI_TXDATA, 0x0103070F);
+    alt_write_word(fpga_spi + SPI_EOP_VALUE, 0x55AA55AA);
+    // Enable interrupt
+    alt_write_word(fpga_spi + SPI_CONTROL, SPI_CONTROL_IRRDY + SPI_CONTROL_IE);
+}
+void setup_hps_gpio(){
+    uint32_t hps_gpio_config_len = 2;
+    ALT_GPIO_CONFIG_RECORD_t hps_gpio_config[] = {
+        {HPS_LED_IDX  , ALT_GPIO_PIN_OUTPUT, 0, 0, ALT_GPIO_PIN_DEBOUNCE, ALT_GPIO_PIN_DATAZERO},
+        {HPS_KEY_N_IDX, ALT_GPIO_PIN_INPUT , 0, 0, ALT_GPIO_PIN_DEBOUNCE, ALT_GPIO_PIN_DATAZERO}
+    };
+
+    assert(ALT_E_SUCCESS == alt_gpio_init());
+    assert(ALT_E_SUCCESS == alt_gpio_group_config(hps_gpio_config, hps_gpio_config_len));
+}
+void toogle_hps_led(){
+    uint32_t hps_led_value = alt_read_word(ALT_GPIO1_SWPORTA_DR_ADDR);
+    hps_led_value >>= HPS_LED_PORT_BIT;
+    hps_led_value = !hps_led_value;
+    hps_led_value <<= HPS_LED_PORT_BIT;
+    alt_gpio_port_data_write(HPS_LED_PORT, HPS_LED_MASK, hps_led_value);
+}
+void Hardware_setup(void){
+	MBX_t    *PrtMbx;
+	intptr_t PtrMsg;
+	SEM_t    *PtrSem = SEMopen("SemSetup");
+
+	setup_hps_gpio();               // This is the Adam&Eve Task and we have first to setup everything
+	setup_Interrupt();
+	SEMpost(PtrSem);
+}

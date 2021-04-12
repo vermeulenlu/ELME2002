@@ -1,0 +1,87 @@
+
+#include "strategy.h"
+#include "path_planning.h"
+#include "PID.h"
+#include "Real_localisation.h"
+#include <math.h>
+
+
+#define FINISH 0
+#define STOP 1
+#define TEST 2
+#define ORIENTATION 3
+#define TEST2 4
+/*
+Initialisation of the structure
+*/
+void init_state(CtrlStruct *cvs){
+  cvs->strat->state = TEST;
+  cvs->strat->next_state = TEST;
+}
+
+void update_state(CtrlStruct *cvs)
+{
+	int res;
+  switch (cvs->strat->state)
+  {
+    case STOP:
+      speed_regulation(cvs,0.0,0.0);
+
+    case FINISH:
+        if(cvs->robot_id == 0 || cvs->robot_id == 1){
+          res = planning(cvs, -0.25 , 1.35);
+        }
+        else{
+          res = planning(cvs, -0.25 , -1.35);
+        }
+        if(res == 1){
+          cvs->strat->state = ORIENTATION;
+          break;
+        }
+        break;
+    case TEST:
+        if(cvs->robot_id == 0 || cvs->robot_id == 1){
+          res = planning(cvs, 0.8 , -1.2);
+        }
+        else{
+          res = planning(cvs, 0.8 , 1.2);
+        }
+        if(res == 1){
+          cvs->strat->state = TEST2;
+          break;
+        }
+        break;`
+    case TEST2:
+        if(cvs->robot_id == 0 || cvs->robot_id == 1){
+          res = planning(cvs, -0.8 , -1.2);
+        }
+        else{
+          res = planning(cvs, -0.8 , 1.2);
+        }
+        if(res == 1){
+          cvs->strat->state = FINISH;
+          break;
+        }
+        break;
+    case ORIENTATION:
+        if(cvs->robot_id == 0 || cvs->robot_id == 1){
+          res = impose_orientation(cvs, 180);
+        }
+        else{
+          res = impose_orientation(cvs, 0);
+        }
+        if(res == 1){
+          cvs->strat->state = STOP;
+          break;
+        }
+        break;
+
+  	default:
+  		//printf("Error: unknown state : %d !\n", cvs->state);
+  		exit(EXIT_FAILURE);
+  }
+
+}
+
+
+NAMESPACE_CLOSE();

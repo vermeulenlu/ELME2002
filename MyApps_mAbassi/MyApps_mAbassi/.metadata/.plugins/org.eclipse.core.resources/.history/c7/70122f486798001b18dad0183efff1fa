@@ -1,0 +1,343 @@
+
+
+#include "CtrlStruct.h"
+#include "math.h"
+#include "path_planning.h"
+#include "odometry.h"
+#include "PID.h"
+#include <unistd.h>
+#include <stdio.h>
+#include <limits.h>
+#include "Real_localisation.h"
+#include "MyApp_mAbassi.h"
+
+
+/*
+Creation of the map used to localize the robot and the obstacles
+*/
+
+void init_path(CtrlStruct *cvs){
+  cvs->path->lines_size = 202;
+  cvs->path->col_size = 302;
+  cvs->path->detection_range = 70;
+  cvs->path->k_att = 0.3;
+  cvs->path->k_rep = 2000.0;
+  cvs->path->error_orient = 0.0;
+  cvs->path->last_t = alt_read_word(fpga_time);
+
+  // We fill in the map matrix with the datas of the pre-computed binary map
+  // --> 1 is an obstacle, 0 is a free space
+
+  int i;
+  int j;
+//  int point;
+//  FILE *pf;
+//  pf = fopen ("/src/Mymatrix.txt.txt", "r");
+//  if (pf == NULL){
+//      printf("couldnt open file\n");
+//  }
+//  rewind(pf);
+  for(i = 0; i < cvs->path->lines_size; i++)
+  {
+      for(j = 0; j < cvs->path->col_size; j++){
+          //point = (int)fgetc(pf)-48;
+          //cvs->path->map[i][j] = point;
+    	  cvs->path->map[i][j] = 0;
+      }
+  }
+
+  // Computation of the fixe potential field
+  // --> Each cell contains the Fx and Fy force to be applied if the robot is on it
+  double obstacle[2] = {0,0};
+  int d_x;
+  int d_y;
+  double rho;
+  double F_rep_x;
+  double F_rep_y;
+  for(i = 0; i < cvs->path->lines_size; i++)
+  {
+      for(j = 0; j < cvs->path->col_size; j++){
+          check_obstacle(cvs, obstacle, i, j, 0 , cvs->path->map);
+          if(obstacle[0] >= 10000){
+            cvs->path->potential[i][j][0] = 0;
+            cvs->path->potential[i][j][1] = 0;
+          }
+          else{
+            d_x = obstacle[0];
+            d_y = obstacle[1];
+            rho = sqrt(pow(d_x,2)+pow(d_y,2));
+            F_rep_x = cvs->path->k_rep*((1/rho)-(1/cvs->path->detection_range))*(1/pow(rho,2))*((d_x)/rho);
+            F_rep_y = cvs->path->k_rep*((1/rho)-(1/cvs->path->detection_range))*(1/pow(rho,2))*((d_y)/rho);
+            cvs->path->potential[i][j][0] = F_rep_x;
+            cvs->path->potential[i][j][1] = F_rep_y;
+          }
+      }
+  }
+
+  // We fill in an txt file in order to display the potential field obtained in matlab
+//  FILE* fichier = NULL;
+//  double tot;
+//  fichier = fopen("../../userFiles/ctrl/groups_ctrl/gr1/path_gr1/potential.txt", "w");
+//  if (fichier != NULL)
+//  {
+//    for(i = 0; i < cvs->path->lines_size; i++)
+//    {
+//      for(j = 0; j < cvs->path->col_size; j++){
+//          // On l'écrit dans le fichier
+//          tot = sqrt(pow(cvs->path->potential[i][j][0],2)+pow(cvs->path->potential[i][j][1],2));
+//          fprintf(fichier, "%f ", tot);
+//      }
+//      fprintf(fichier, "\n");
+//    }
+//    fclose(fichier);
+//  }
+}
+
+/*
+Fonction to convert an analog position to a digital position corresponding to a cell in the map matrix
+*/
+void transform(CtrlStruct *cvs, double x, double y, int *buf){
+  x = x + 1;
+  y = y + 1.5;
+
+  x = x/2;
+  y = y/3;
+
+  x = x*(cvs->path->lines_size-2);
+  y = y*(cvs->path->col_size-2);
+
+  buf[0] = (int)x;
+  buf[1] = (int)y;
+}
+
+
+/*
+Function used to compute the closest obstacle from one point, and to return the distance and the angle wrt the obstacles
+--> used in the computation of the potential field
+*/
+void check_obstacle(CtrlStruct *cvs, double *obstacle, int x, int y, int v, int map[202][302]) {
+
+  int i;
+  int j;
+  int x_diff;
+  int y_diff;
+  double minimal_distance = 10000000000;
+  int x_diff_final;
+  int y_diff_final;
+  for(i=x-cvs->path->detection_range; i<x+cvs->path->detection_range; i++){
+    for(j=y-cvs->path->detection_range; j<y+cvs->path->detection_range; j++){
+      if(v == 0){
+        if(i>=0 && j>=0 && (i<=cvs->path->lines_size-1) && (j<= cvs->path->col_size-1) && (cvs->path->map[i][j]==1) && (i!=x) && (j!=y)){
+          x_diff = x - i;
+          y_diff = y - j;
+          if( minimal_distance >= sqrt(pow(x_diff,2)+pow(y_diff,2))){
+            minimal_distance = sqrt(pow(x_diff,2)+pow(y_diff,2));
+            x_diff_final = x_diff;
+            y_diff_final = y_diff;
+          }
+        }
+      }
+      else{
+        if(i>=0 && j>=0 && (i<=cvs->path->lines_size-1) && (j<= cvs->path->col_size-1) && (map[i][j]==1) && (i!=x) && (j!=y)){
+          x_diff = x - i;
+          y_diff = y - j;
+          if( minimal_distance >= sqrt(pow(x_diff,2)+pow(y_diff,2))){
+            minimal_distance = sqrt(pow(x_diff,2)+pow(y_diff,2));
+            x_diff_final = x_diff;
+            y_diff_final = y_diff;
+          }
+        }
+      }
+    }
+  }
+  if(minimal_distance <= cvs->path->detection_range){
+    obstacle[0] = x_diff_final;
+    obstacle[1] = y_diff_final;
+  }
+  else{
+    obstacle[0] = 10000000000;
+    obstacle[1] = 10000000000;
+  }
+}
+
+/*
+Function to impose a orientation to the Robot. A P controller is used
+*/
+double impose_orientation(CtrlStruct *cvs, double angle){
+  angle = M_PI*angle/180;
+  uint32_t t = alt_read_word(fpga_time);
+  printf("t : %lu\n",t );
+  printf("last_t : %lu\n", cvs->path->last_t);
+  double Kp = 0.1;
+  double Ki = 0.1;
+  double dy = cos(cvs->real_local->theta);
+  double dx = sin(cvs->real_local->theta);
+  double angle2 = -atan2(dy,dx);
+  printf("angle : %f\n", angle2*180/M_PI);
+  double error = angle2 - angle;
+  double commandI = Ki*update_error_orient(cvs, abs(error), t);
+  printf("commnd :  : %f\n", commandI);
+  printf("Sumerror : %f\n", cvs->path->error_orient);
+  double command = Kp*abs(error) + Ki*update_error_orient(cvs, abs(error), t);
+  //printf("command : %f\n", command);
+  if(abs(error*180/M_PI) < 5){
+	cvs->path->last_t = t;
+    return 1;
+  }
+  else{
+	  cvs->path->last_t = t;
+      speed_regulation(cvs, command, -command);
+      return 0;
+  }
+}
+
+double update_error_orient(CtrlStruct *cvs, double Error, uint32_t t){
+  double Deltat = (double)(t - cvs->path->last_t)/10000;
+  printf("dt : %f\n", Deltat);
+  cvs->path->error_orient = cvs->path->error_orient + 100*Error*Deltat;
+  return cvs->path->error_orient;
+}
+
+
+/*
+Function to take the pre-computed forces to be applied to the Robot
+and to act on it depending of those forces. The robot is attracted to
+the position (x_goal, y_goal)
+*/
+double planning(CtrlStruct *cvs, double x_goal, double y_goal){
+  double x = cvs->real_local->x;
+  double y = cvs->real_local->y;
+  double theta = cvs->real_local->theta;
+  double k_att = cvs->path->k_att;
+  double k_rep = cvs->path->k_rep;
+  double k_lin = 0.004;
+  double k_omega = 4.0;
+  double scale = 1.2;
+  int stop = 0;
+  int virtual_map[202][302] = {0};
+
+  // Robot's position and goal's position on the grid
+  int position[2] = {0,0};
+  transform(cvs, x, y, position);
+  int position_goal[2] = {0,0};
+  transform(cvs, x_goal, y_goal, position_goal);
+
+  double F_att_x;
+  double F_att_y;
+  double d2 = sqrt(pow(position[0] - position_goal[0],2)+pow(position[1] - position_goal[1],2));
+
+  // If the goal is close, don't slow down to much
+  // and if you are at the correct position (+- 5 cm), stop the robot
+  if(d2 < 5){
+    stop = 1;
+  }
+  if(d2 < 100 && d2>=5){
+    k_att = cvs->path->k_att*2;
+  }
+  if(d2 > 100){
+    k_att = cvs->path->k_att;
+  }
+
+  F_att_x  = -k_att*(position[0] - position_goal[0]);
+  F_att_y  = -k_att*(position[1] - position_goal[1]);
+
+  // Reppel forces
+  double F_tot_x;
+  double F_tot_y;
+  double F_rep_x = cvs->path->potential[position[0]][position[1]][0];
+  double F_rep_y = cvs->path->potential[position[0]][position[1]][1];
+
+  double beta;
+  F_tot_x = F_att_x + F_rep_x ;
+  F_tot_y = F_att_y + F_rep_y ;
+
+  // Depending of the orientation the beta angle is not the same
+  if(F_tot_x > 0 && F_tot_y > 0){beta = atan(F_tot_y/F_tot_x);}
+  if(F_tot_x < 0 && F_tot_y > 0){beta = M_PI - atan(-F_tot_y/F_tot_x);}
+  if(F_tot_x < 0 && F_tot_y < 0){beta = -M_PI + atan(F_tot_y/F_tot_x);}
+  if(F_tot_x > 0 && F_tot_y < 0){beta = atan(F_tot_y/F_tot_x);}
+  if(F_tot_x == 0 && F_tot_y > 0){beta = M_PI/2;}
+  if(F_tot_x == 0 && F_tot_y < 0){beta = -M_PI/2;}
+
+
+  // Here, we decide what to do if a opponent is on our way to the goal
+  // Actually, if it does, a new reppel force is added, depending of the
+  // position of the opponent
+//  double Xsi;
+//  double room;
+//  double d;
+//  int i;
+//  int j;
+//  double amp;
+//  double dx;
+//  double dy;
+//  double F_rep_x_bis = 0;
+//  double F_rep_y_bis = 0;
+//  int position_map_opponents_1[2][2];
+//
+//  for(int z=0; z<1; z++){
+//      transform(cvs, cvs->opp->x[0], cvs->opp->y[0], position_map_opponents_1[z]);
+//      if(position_map_opponents_1[z][0] < 0 || position_map_opponents_1[z][0] > 210 || position_map_opponents_1[z][1] < 0 || position_map_opponents_1[z][0] > 310){
+//          break;
+//      }
+//      else{
+//        for(i=position_map_opponents_1[z][0]-25; i<position_map_opponents_1[z][0]+25; i++){
+//          for(j=position_map_opponents_1[z][1]-25; j<position_map_opponents_1[z][1]+25; j++){
+//            if(i>=0 && j>=0 && (i<=cvs->path->lines_size-1) && (j<= cvs->path->col_size-1)){
+//              virtual_map[i][j] = 1;
+//              }
+//            }
+//          }
+//      }
+//    }
+//
+//    double obstacle[2] = {0,0};
+//    check_obstacle(cvs, obstacle, position[0], position[1], 1, virtual_map);
+//
+//    if(obstacle[0] >= 10000){
+//      F_rep_x_bis  = 0;
+//      F_rep_y_bis  = 0;
+//    }
+//    else{
+//      int d_x = obstacle[0];
+//      int d_y = obstacle[1];
+//      double rho = sqrt(pow(d_x,2)+pow(d_y,2));
+//      F_rep_x_bis  = cvs->path->k_rep*((1/rho)-(1/cvs->path->detection_range))*(1/pow(rho,2))*((d_x)/rho)/6;
+//      F_rep_y_bis  = cvs->path->k_rep*((1/rho)-(1/cvs->path->detection_range))*(1/pow(rho,2))*((d_y)/rho)/6;
+//    }
+//
+//  F_tot_x = F_att_x + F_rep_x + F_rep_x_bis;
+//  F_tot_y = F_att_y + F_rep_y + F_rep_y_bis;
+//
+//  // We recompute the beta angle because the total force might have been changed
+//  if(F_tot_x > 0 && F_tot_y > 0){beta = atan(F_tot_y/F_tot_x);}
+//  if(F_tot_x < 0 && F_tot_y > 0){beta = M_PI + atan(F_tot_y/F_tot_x);}
+//  if(F_tot_x < 0 && F_tot_y < 0){beta = -M_PI + atan(F_tot_y/F_tot_x);}
+//  if(F_tot_x > 0 && F_tot_y < 0){beta = atan(F_tot_y/F_tot_x);}
+//  if(F_tot_x == 0 && F_tot_y > 0){beta = M_PI/2;}
+//  if(F_tot_x == 0 && F_tot_y < 0){beta = -M_PI/2;}
+
+  // printf("F tot x : %f\n",F_tot_x);
+  // printf("F tot y : %f\n",F_tot_y);
+  // printf("beta : %f\n",beta);
+  // printf("\n");
+
+
+  // Computation of the speed to apply the the wheel depending on the forces applied to the robot
+  double alpha = beta - theta;
+  double v_lin = k_lin*cos(alpha)*sqrt(pow(F_tot_x,2)+pow(F_tot_y,2));
+  double omega = k_omega*sin(alpha);
+  double speed_lin_wheels = (v_lin/(0.03*78/100))/scale;
+  double speed_ang_wheels = (omega*0.10/(0.03*78/100))/scale;
+  double speed_l = speed_lin_wheels - speed_ang_wheels;
+  double speed_r = speed_lin_wheels + speed_ang_wheels;
+  // If close to the goal, stop
+  if(stop == 1){
+    speed_regulation(cvs, 0, 0);
+    return 1;
+  }
+  else{
+    speed_regulation(cvs, speed_r, speed_l);
+    return 0;
+  }
+}

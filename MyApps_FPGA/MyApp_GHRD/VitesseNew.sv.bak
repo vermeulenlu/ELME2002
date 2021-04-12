@@ -1,0 +1,56 @@
+
+
+module VitesseNew(
+	input logic a,
+	input logic b,
+	input logic clk,
+	input logic reset,
+	output logic [31:0] speed);
+	//output logic [15:0] speed);
+	
+	reg [31:0] counterTime;
+	reg [31:0] counterSpeed = 32'd0;		//equals the amount of posedges of a and b, to be transformed into speeds by the PI
+	reg [31:0] measure;
+	//reg [15:0] measure;
+	reg speedReset = 1'b0;
+
+	always_ff @(posedge clk, posedge reset)
+	begin	
+		if(reset)
+			begin	
+				counterTime <= 0;
+				measure <= 0;
+				speedReset <= 1;
+			end
+		else 
+			begin
+			case(counterTime)	//32'd1850000
+				32'd18500 :  	begin 		
+							measure <= counterSpeed;	
+							counterTime <= 0;			
+							speedReset <= 1;
+							end
+				default: 	begin
+							counterTime <= counterTime + 1;	
+							speedReset <= 0;
+							end
+			endcase	
+			end
+	end
+	
+	//at every posedge of a, b or reset, increment counterSpeed by 1
+	//always_ff @(posedge a, posedge speedReset)	
+	always_ff @(posedge a, posedge b, posedge speedReset)	
+		begin
+			if(speedReset)
+				counterSpeed <= 0;
+			else
+				counterSpeed <= counterSpeed + 1;
+		end
+	
+	assign speed = measure;	
+
+endmodule
+	
+			
+		

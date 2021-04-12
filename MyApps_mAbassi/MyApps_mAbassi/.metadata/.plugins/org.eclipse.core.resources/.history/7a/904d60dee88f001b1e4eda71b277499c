@@ -1,0 +1,94 @@
+#include "PID.h"
+#include "MyApp_mAbassi.h"
+#include <math.h>
+#include <stdio.h>
+
+
+void init_speed_reg(CtrlStruct *cvs){
+		cvs->sp_reg->sumErrorL = 0.0;
+		cvs->sp_reg->sumErrorR = 0.0;
+		cvs->sp_reg->last_t = 0.0;
+}
+
+double updateError(CtrlStruct *cvs,double Error, double Deltat, int motor)
+{
+	if(motor == 0){
+		cvs->sp_reg->sumErrorL = cvs->sp_reg->sumErrorL + Error*Deltat;
+		return cvs->sp_reg->sumErrorL;
+	}
+	else{
+		cvs->sp_reg->sumErrorR = cvs->sp_reg->sumErrorR + Error*Deltat;
+		return cvs->sp_reg->sumErrorR;
+	}
+}
+double Current_Saturation(double RaIa){
+	if(RaIa > 5.112){
+		return 5.112;
+	}
+	if(-RaIa > 5.112){
+		return -5.112;
+	}
+	else{
+		return RaIa;
+	}
+}
+void speed_regulation(CtrlStruct *cvs,double r_sp_ref, double l_sp_ref)
+{
+		uint32_t t = alt_read_word(fpga_time);
+		//printf("time = %u\n", t);
+
+		// Given Variables
+		uint32_t vlmes1 = alt_read_word(fpga_speed_left);
+		uint32_t vrmes1 = alt_read_word(fpga_speed_right);
+
+		double vlmes = vlmes1*2*M_PI/(4*2048*0.2);
+		double vrmes = vrmes1*2*M_PI/(4*2048*0.2);
+
+		//printf("vlmes : %f\n", vlmes);
+		//printf("vrmes : %f\n", vrmes);
+
+		double Deltat = (double)(t - cvs->sp_reg->last_t)/10000;
+		printf("Deltat %f\n",Deltat);
+
+		double Error_l = 19*(l_sp_ref - vlmes);
+		double Error_r = 19*(r_sp_ref - vrmes);
+
+		double Kp = 0.05;
+		double Ki = 1.648;
+		double kPhi = 0.0261;
+
+		double PropControl_l = Kp*Error_l;
+		double PropControl_r = Kp*Error_r;
+		double IntControl_l = Ki*updateError(cvs, Error_l,Deltat,0);
+		double IntControl_r = Ki*updateError(cvs, Error_r,Deltat,1);
+
+		double RaIaL = PropControl_l + IntControl_l;
+		double RaIaR = PropControl_r + IntControl_r;
+
+		RaIaL = Current_Saturation(RaIaL);
+		RaIaR = Current_Saturation(RaIaR);
+
+		double tot_l = RaIaL + kPhi*vlmes*19;
+		double tot_r = RaIaR + kPhi*vrmes*19;
+
+		if(tot_l >= 24){
+			tot_l = 24;
+		}
+		if(tot_l <= -24){
+			tot_l = -24;
+		}
+		if(tot_r >= 24){
+			tot_r = 24;
+		}
+		if(tot_r <= -24){
+			tot_r = -24;
+		}
+
+		//printf("Commande right : %f\n", tot_r);
+		//printf("Commande left : %f\n", tot_l);
+		//printf("\n");
+
+	   // last update time
+		push_propDC(tot_r*100/24, tot_l*100/24);
+	    cvs->sp_reg->last_t = t;
+}

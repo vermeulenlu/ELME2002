@@ -1,0 +1,25 @@
+#ifndef _PATH_PLANNING_H_
+#define _PATH_PLANNING_H_
+
+#include "CtrlStruct.h"
+
+typedef struct PathPlanning{
+    int map[202][302];
+    double potential [202][302][2];
+    int lines_size;
+    int col_size;
+    int detection_range;
+    double k_att;
+    double k_rep;
+    double error_orient;
+    double last_t;
+}PathPlanning;
+
+void init_path(CtrlStruct *cvs);
+void transform(CtrlStruct *cvs, double x, double y, int* buf);
+void check_obstacle(CtrlStruct *cvs, double *obstacle, int x, int y, int v, int map[202][302]);
+double planning(CtrlStruct *cvs, double x, double y);
+double impose_orientation(CtrlStruct *cvs, double angle);
+double update_error_orient(CtrlStruct *cvs, double Error);
+
+#endif
