@@ -13,7 +13,7 @@
    {
       datum _sortIndex
       {
-         value = "11";
+         value = "9";
          type = "int";
       }
    }
@@ -34,8 +34,13 @@
    {
       datum _sortIndex
       {
-         value = "16";
+         value = "13";
          type = "int";
+      }
+      datum sopceditor_expanded
+      {
+         value = "1";
+         type = "boolean";
       }
    }
    element address.s1
@@ -46,53 +51,11 @@
          type = "String";
       }
    }
-   element button_pio
-   {
-      datum _sortIndex
-      {
-         value = "8";
-         type = "int";
-      }
-      datum sopceditor_expanded
-      {
-         value = "1";
-         type = "boolean";
-      }
-   }
-   element button_pio.s1
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-      datum baseAddress
-      {
-         value = "20480";
-         type = "String";
-      }
-   }
-   element change_frequency_led_0
-   {
-      datum _sortIndex
-      {
-         value = "13";
-         type = "int";
-      }
-   }
-   element change_frequency_led_0.s1
-   {
-      datum baseAddress
-      {
-         value = "28672";
-         type = "String";
-      }
-   }
    element clk_0
    {
       datum _sortIndex
       {
-         value = "12";
+         value = "10";
          type = "int";
       }
       datum sopceditor_expanded
@@ -105,7 +68,7 @@
    {
       datum _sortIndex
       {
-         value = "19";
+         value = "16";
          type = "int";
       }
    }
@@ -121,7 +84,7 @@
    {
       datum _sortIndex
       {
-         value = "9";
+         value = "7";
          type = "int";
       }
       datum sopceditor_expanded
@@ -206,6 +169,22 @@
          type = "boolean";
       }
    }
+   element i2c_0
+   {
+      datum _sortIndex
+      {
+         value = "17";
+         type = "int";
+      }
+   }
+   element i2c_0.csr
+   {
+      datum baseAddress
+      {
+         value = "36864";
+         type = "String";
+      }
+   }
    element jtag_uart
    {
       datum _sortIndex
@@ -236,7 +215,7 @@
    {
       datum _sortIndex
       {
-         value = "10";
+         value = "8";
          type = "int";
       }
       datum sopceditor_expanded
@@ -274,11 +253,59 @@
          type = "boolean";
       }
    }
-   element pio_timer
+   element pi_data_angle
+   {
+      datum _sortIndex
+      {
+         value = "21";
+         type = "int";
+      }
+   }
+   element pi_data_angle.s1
+   {
+      datum baseAddress
+      {
+         value = "36928";
+         type = "String";
+      }
+   }
+   element pi_data_x
    {
       datum _sortIndex
       {
          value = "22";
+         type = "int";
+      }
+   }
+   element pi_data_x.s1
+   {
+      datum baseAddress
+      {
+         value = "36944";
+         type = "String";
+      }
+   }
+   element pi_data_y
+   {
+      datum _sortIndex
+      {
+         value = "23";
+         type = "int";
+      }
+   }
+   element pi_data_y.s1
+   {
+      datum baseAddress
+      {
+         value = "36960";
+         type = "String";
+      }
+   }
+   element pio_timer
+   {
+      datum _sortIndex
+      {
+         value = "20";
          type = "int";
       }
    }
@@ -294,8 +321,13 @@
    {
       datum _sortIndex
       {
-         value = "18";
+         value = "15";
          type = "int";
+      }
+      datum sopceditor_expanded
+      {
+         value = "1";
+         type = "boolean";
       }
    }
    element read.s1
@@ -310,8 +342,13 @@
    {
       datum _sortIndex
       {
-         value = "15";
+         value = "12";
          type = "int";
+      }
+      datum sopceditor_expanded
+      {
+         value = "1";
+         type = "boolean";
       }
    }
    element readdata_RXD.s1
@@ -326,7 +363,7 @@
    {
       datum _sortIndex
       {
-         value = "20";
+         value = "18";
          type = "int";
       }
    }
@@ -342,7 +379,7 @@
    {
       datum _sortIndex
       {
-         value = "21";
+         value = "19";
          type = "int";
       }
    }
@@ -351,22 +388,6 @@
       datum baseAddress
       {
          value = "32880";
-         type = "String";
-      }
-   }
-   element spi_raspberrypi
-   {
-      datum _sortIndex
-      {
-         value = "7";
-         type = "int";
-      }
-   }
-   element spi_raspberrypi.spi_control_port
-   {
-      datum baseAddress
-      {
-         value = "24576";
          type = "String";
       }
    }
@@ -395,8 +416,13 @@
    {
       datum _sortIndex
       {
-         value = "17";
+         value = "14";
          type = "int";
+      }
+      datum sopceditor_expanded
+      {
+         value = "1";
+         type = "boolean";
       }
    }
    element write.s1
@@ -411,8 +437,13 @@
    {
       datum _sortIndex
       {
-         value = "14";
+         value = "11";
          type = "int";
+      }
+      datum sopceditor_expanded
+      {
+         value = "1";
+         type = "boolean";
       }
    }
    element writedata_TXD.s1
@@ -447,16 +478,6 @@
  <interface
    name="address_external_connection"
    internal="address.external_connection"
-   type="conduit"
-   dir="end" />
- <interface
-   name="button_pio_external_connection"
-   internal="button_pio.external_connection"
-   type="conduit"
-   dir="end" />
- <interface
-   name="change_frequency_led_0_external_connection"
-   internal="change_frequency_led_0.external_connection"
    type="conduit"
    dir="end" />
  <interface name="clk" internal="clk_0.clk_in" type="clock" dir="end" />
@@ -498,11 +519,31 @@
  <interface name="hps_0_h2f_user0_clock" internal="hps_0.h2f_user0_clock" />
  <interface name="hps_0_hps_io" internal="hps_0.hps_io" type="conduit" dir="end" />
  <interface
+   name="i2c_serial_export"
+   internal="i2c_0.i2c_serial"
+   type="conduit"
+   dir="end" />
+ <interface
    name="led_pio_external_connection"
    internal="led_pio.external_connection"
    type="conduit"
    dir="end" />
  <interface name="memory" internal="hps_0.memory" type="conduit" dir="end" />
+ <interface
+   name="pi_data_angle_external_connection"
+   internal="pi_data_angle.external_connection"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="pi_data_x_external_connection"
+   internal="pi_data_x.external_connection"
+   type="conduit"
+   dir="end" />
+ <interface
+   name="pi_data_y_external_connection"
+   internal="pi_data_y.external_connection"
+   type="conduit"
+   dir="end" />
  <interface
    name="pio_timer_external_connection"
    internal="pio_timer.external_connection"
@@ -527,11 +568,6 @@
  <interface
    name="speed_right_external_connection"
    internal="speed_right.external_connection"
-   type="conduit"
-   dir="end" />
- <interface
-   name="spi_raspberrypi_external_connection"
-   internal="spi_raspberrypi.external"
    type="conduit"
    dir="end" />
  <interface
@@ -566,38 +602,6 @@
   <parameter name="simDoTestBenchWiring" value="false" />
   <parameter name="simDrivenValue" value="0" />
   <parameter name="width" value="3" />
- </module>
- <module name="button_pio" kind="altera_avalon_pio" version="18.1" enabled="1">
-  <parameter name="bitClearingEdgeCapReg" value="true" />
-  <parameter name="bitModifyingOutReg" value="false" />
-  <parameter name="captureEdge" value="true" />
-  <parameter name="clockRate" value="50000000" />
-  <parameter name="direction" value="Input" />
-  <parameter name="edgeType" value="FALLING" />
-  <parameter name="generateIRQ" value="true" />
-  <parameter name="irqType" value="EDGE" />
-  <parameter name="resetValue" value="0" />
-  <parameter name="simDoTestBenchWiring" value="false" />
-  <parameter name="simDrivenValue" value="0" />
-  <parameter name="width" value="2" />
- </module>
- <module
-   name="change_frequency_led_0"
-   kind="altera_avalon_pio"
-   version="18.1"
-   enabled="1">
-  <parameter name="bitClearingEdgeCapReg" value="false" />
-  <parameter name="bitModifyingOutReg" value="false" />
-  <parameter name="captureEdge" value="false" />
-  <parameter name="clockRate" value="50000000" />
-  <parameter name="direction" value="Output" />
-  <parameter name="edgeType" value="RISING" />
-  <parameter name="generateIRQ" value="false" />
-  <parameter name="irqType" value="LEVEL" />
-  <parameter name="resetValue" value="24999999" />
-  <parameter name="simDoTestBenchWiring" value="false" />
-  <parameter name="simDrivenValue" value="0" />
-  <parameter name="width" value="26" />
  </module>
  <module name="clk_0" kind="clock_source" version="18.1" enabled="1">
   <parameter name="clockFrequency" value="50000000" />
@@ -1205,6 +1209,11 @@
   <parameter name="PLI_PORT" value="50000" />
   <parameter name="USE_PLI" value="0" />
  </module>
+ <module name="i2c_0" kind="altera_avalon_i2c" version="18.1" enabled="1">
+  <parameter name="FIFO_DEPTH" value="4" />
+  <parameter name="USE_AV_ST" value="0" />
+  <parameter name="clockRate" value="50000000" />
+ </module>
  <module
    name="jtag_uart"
    kind="altera_avalon_jtag_uart"
@@ -1255,6 +1264,52 @@
   <parameter name="SYSINFO_ADDR_WIDTH" value="18" />
   <parameter name="USE_AUTO_ADDRESS_WIDTH" value="1" />
   <parameter name="USE_RESPONSE" value="0" />
+ </module>
+ <module
+   name="pi_data_angle"
+   kind="altera_avalon_pio"
+   version="18.1"
+   enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="50000000" />
+  <parameter name="direction" value="Input" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="0" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="32" />
+ </module>
+ <module name="pi_data_x" kind="altera_avalon_pio" version="18.1" enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="50000000" />
+  <parameter name="direction" value="Input" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="0" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="32" />
+ </module>
+ <module name="pi_data_y" kind="altera_avalon_pio" version="18.1" enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="false" />
+  <parameter name="clockRate" value="50000000" />
+  <parameter name="direction" value="Input" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="false" />
+  <parameter name="irqType" value="LEVEL" />
+  <parameter name="resetValue" value="0" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="32" />
  </module>
  <module name="pio_timer" kind="altera_avalon_pio" version="18.1" enabled="1">
   <parameter name="bitClearingEdgeCapReg" value="false" />
@@ -1335,26 +1390,6 @@
   <parameter name="width" value="32" />
  </module>
  <module
-   name="spi_raspberrypi"
-   kind="altera_avalon_spi"
-   version="18.1"
-   enabled="1">
-  <parameter name="avalonSpec" value="2.0" />
-  <parameter name="clockPhase" value="0" />
-  <parameter name="clockPolarity" value="0" />
-  <parameter name="dataWidth" value="32" />
-  <parameter name="disableAvalonFlowControl" value="false" />
-  <parameter name="inputClockRate" value="50000000" />
-  <parameter name="insertDelayBetweenSlaveSelectAndSClk" value="false" />
-  <parameter name="insertSync" value="true" />
-  <parameter name="lsbOrderedFirst" value="false" />
-  <parameter name="masterSPI" value="false" />
-  <parameter name="numberOfSlaves" value="1" />
-  <parameter name="syncRegDepth" value="2" />
-  <parameter name="targetClockRate" value="128000" />
-  <parameter name="targetSlaveSelectToSClkDelay" value="0.0" />
- </module>
- <module
    name="sysid_qsys"
    kind="altera_avalon_sysid_qsys"
    version="18.1"
@@ -1429,6 +1464,11 @@
   <parameter name="baseAddress" value="0x1000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
+ <connection kind="avalon" version="18.1" start="mm_bridge_0.m0" end="i2c_0.csr">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x9000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
  <connection kind="avalon" version="18.1" start="mm_bridge_0.m0" end="led_pio.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x3000" />
@@ -1441,24 +1481,6 @@
    end="dipsw_pio.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x4000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="18.1"
-   start="mm_bridge_0.m0"
-   end="button_pio.s1">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x5000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="18.1"
-   start="mm_bridge_0.m0"
-   end="change_frequency_led_0.s1">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x7000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1530,9 +1552,27 @@
    kind="avalon"
    version="18.1"
    start="mm_bridge_0.m0"
-   end="spi_raspberrypi.spi_control_port">
+   end="pi_data_angle.s1">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x6000" />
+  <parameter name="baseAddress" value="0x9040" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="18.1"
+   start="mm_bridge_0.m0"
+   end="pi_data_x.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x9050" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="18.1"
+   start="mm_bridge_0.m0"
+   end="pi_data_y.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x9060" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1584,15 +1624,6 @@
    kind="avalon"
    version="18.1"
    start="fpga_only_master.master"
-   end="button_pio.s1">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x5000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="18.1"
-   start="fpga_only_master.master"
    end="led_pio.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x3000" />
@@ -1605,15 +1636,6 @@
    end="dipsw_pio.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x4000" />
-  <parameter name="defaultConnection" value="false" />
- </connection>
- <connection
-   kind="avalon"
-   version="18.1"
-   start="fpga_only_master.master"
-   end="change_frequency_led_0.s1">
-  <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x7000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1701,9 +1723,27 @@
    kind="avalon"
    version="18.1"
    start="fpga_only_master.master"
-   end="spi_raspberrypi.spi_control_port">
+   end="pi_data_angle.s1">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x6000" />
+  <parameter name="baseAddress" value="0x9040" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="18.1"
+   start="fpga_only_master.master"
+   end="pi_data_x.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x9050" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="18.1"
+   start="fpga_only_master.master"
+   end="pi_data_y.s1">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x9060" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -1718,7 +1758,6 @@
    start="clk_0.clk"
    end="fpga_only_master.clk" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="dipsw_pio.clk" />
- <connection kind="clock" version="18.1" start="clk_0.clk" end="button_pio.clk" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="jtag_uart.clk" />
  <connection
    kind="clock"
@@ -1728,16 +1767,6 @@
  <connection kind="clock" version="18.1" start="clk_0.clk" end="mm_bridge_0.clk" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="ILC.clk" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="sysid_qsys.clk" />
- <connection
-   kind="clock"
-   version="18.1"
-   start="clk_0.clk"
-   end="spi_raspberrypi.clk" />
- <connection
-   kind="clock"
-   version="18.1"
-   start="clk_0.clk"
-   end="change_frequency_led_0.clk" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="writedata_TXD.clk" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="readdata_RXD.clk" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="address.clk" />
@@ -1747,6 +1776,10 @@
  <connection kind="clock" version="18.1" start="clk_0.clk" end="speed_left.clk" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="speed_right.clk" />
  <connection kind="clock" version="18.1" start="clk_0.clk" end="pio_timer.clk" />
+ <connection kind="clock" version="18.1" start="clk_0.clk" end="pi_data_angle.clk" />
+ <connection kind="clock" version="18.1" start="clk_0.clk" end="pi_data_x.clk" />
+ <connection kind="clock" version="18.1" start="clk_0.clk" end="pi_data_y.clk" />
+ <connection kind="clock" version="18.1" start="clk_0.clk" end="i2c_0.clock" />
  <connection
    kind="clock"
    version="18.1"
@@ -1771,15 +1804,15 @@
    kind="interrupt"
    version="18.1"
    start="hps_0.f2h_irq0"
-   end="jtag_uart.irq">
-  <parameter name="irqNumber" value="2" />
+   end="i2c_0.interrupt_sender">
+  <parameter name="irqNumber" value="4" />
  </connection>
  <connection
    kind="interrupt"
    version="18.1"
    start="hps_0.f2h_irq0"
-   end="button_pio.irq">
-  <parameter name="irqNumber" value="1" />
+   end="jtag_uart.irq">
+  <parameter name="irqNumber" value="2" />
  </connection>
  <connection
    kind="interrupt"
@@ -1788,28 +1821,11 @@
    end="dipsw_pio.irq">
   <parameter name="irqNumber" value="0" />
  </connection>
- <connection
-   kind="interrupt"
-   version="18.1"
-   start="hps_0.f2h_irq0"
-   end="spi_raspberrypi.irq">
-  <parameter name="irqNumber" value="3" />
- </connection>
  <connection kind="interrupt" version="18.1" start="ILC.irq" end="jtag_uart.irq">
   <parameter name="irqNumber" value="2" />
  </connection>
- <connection kind="interrupt" version="18.1" start="ILC.irq" end="button_pio.irq">
-  <parameter name="irqNumber" value="1" />
- </connection>
  <connection kind="interrupt" version="18.1" start="ILC.irq" end="dipsw_pio.irq">
   <parameter name="irqNumber" value="0" />
- </connection>
- <connection
-   kind="interrupt"
-   version="18.1"
-   start="ILC.irq"
-   end="spi_raspberrypi.irq">
-  <parameter name="irqNumber" value="3" />
  </connection>
  <connection
    kind="reset"
@@ -1835,16 +1851,6 @@
    kind="reset"
    version="18.1"
    start="clk_0.clk_reset"
-   end="dipsw_pio.reset" />
- <connection
-   kind="reset"
-   version="18.1"
-   start="clk_0.clk_reset"
-   end="button_pio.reset" />
- <connection
-   kind="reset"
-   version="18.1"
-   start="clk_0.clk_reset"
    end="jtag_uart.reset" />
  <connection
    kind="reset"
@@ -1856,16 +1862,6 @@
    version="18.1"
    start="clk_0.clk_reset"
    end="sysid_qsys.reset" />
- <connection
-   kind="reset"
-   version="18.1"
-   start="clk_0.clk_reset"
-   end="spi_raspberrypi.reset" />
- <connection
-   kind="reset"
-   version="18.1"
-   start="clk_0.clk_reset"
-   end="change_frequency_led_0.reset" />
  <connection
    kind="reset"
    version="18.1"
@@ -1903,7 +1899,32 @@
    version="18.1"
    start="clk_0.clk_reset"
    end="pio_timer.reset" />
+ <connection
+   kind="reset"
+   version="18.1"
+   start="clk_0.clk_reset"
+   end="pi_data_angle.reset" />
+ <connection
+   kind="reset"
+   version="18.1"
+   start="clk_0.clk_reset"
+   end="pi_data_x.reset" />
+ <connection
+   kind="reset"
+   version="18.1"
+   start="clk_0.clk_reset"
+   end="pi_data_y.reset" />
+ <connection
+   kind="reset"
+   version="18.1"
+   start="clk_0.clk_reset"
+   end="dipsw_pio.reset" />
  <connection kind="reset" version="18.1" start="clk_0.clk_reset" end="ILC.reset_n" />
+ <connection
+   kind="reset"
+   version="18.1"
+   start="clk_0.clk_reset"
+   end="i2c_0.reset_sink" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
 </system>

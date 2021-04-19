@@ -1,0 +1,48 @@
+
+
+#include "CtrlStruct.h"
+#include <math.h>
+#include "opponents.h"
+#include "odometry.h"
+#include "path_planning.h"
+#include "Real_localisation.h"
+#include "MyApp_I2C.h"
+
+
+/*
+Initialisation of the structure
+*/
+void init_opponents(CtrlStruct *cvs){
+  double x[2] = {100000,100000};
+  double y[2] = {100000,100000};
+  double theta[2] = {100000,100000};
+}
+
+/*
+Function to compute the position of the opponents
+*/
+void update_opponents(CtrlStruct *cvs, ALT_AVALON_I2C_DEV_t *i2c_dev, ALT_AVALON_I2C_MASTER_CONFIG_t cfg){
+    double x_robot = cvs->real_local->x;
+    double y_robot = cvs->real_local->y;
+    double angle_robot = cvs->real_local->theta;
+    double dx = cos(angle_robot);
+    double dy = sin(angle_robot);
+    int res_left;
+    int res_right;
+    double x_pos;
+    double y_pos;
+    int res[2] = {0,0};
+    Object_Detection_Sonar(i2c_dev,cfg, res, cvs);
+    res_left = res[0];
+    res_right = res[1];
+//    if(res_left<35 && res_right<35 && res_left!=0 && res_right !=0){ // Le robot est en face
+//      x_pos = x_robot + dx*(res_left+res_right)/200;
+//      y_pos = y_robot + dy*(res_left+res_right)/200;
+//      if(x_pos > -90 && x_pos < 90 && y_pos > -140 && y_pos < 140){
+//        cvs->opp->x[0] = x_pos;
+//        cvs->opp->y[0] = y_pos;
+//      }
+//      printf("x_opp : %f\n", cvs->opp->x[0]);
+//      printf("y_opp : %f\n", cvs->opp->y[0]);
+//    }
+}

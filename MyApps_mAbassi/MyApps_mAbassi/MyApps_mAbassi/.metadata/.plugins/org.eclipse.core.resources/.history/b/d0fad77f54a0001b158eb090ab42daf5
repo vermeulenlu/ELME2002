@@ -1,0 +1,20 @@
+
+
+#ifndef _OPPONENTS_H_
+#define _OPPONENTS_H_
+
+#include "CtrlStruct.h"
+
+NAMESPACE_INIT(ctrlGr1);
+
+typedef struct Opponents{
+  double x[2];
+  double y[2];
+  double theta[2];
+} Opponents;
+
+void init_opponents(CtrlStruct *cvs);
+void update_opponents(CtrlStruct *cvs);
+
+
+#endif

@@ -4,18 +4,21 @@
 //-----------------------------------------------------------------------
 module UART_Dynamixel (
 	// NIOS signals
-	input				clk,
-	input 			reset,
-	input				write_en,
-	input				read_en,
-	input  reg[2:0] 	rw_ad,
-	input  reg[31:0]	write_data,
-	output reg[31:0]	read_data,
+	input	logic clk,
+	input logic reset,
+	input	logic write_en,
+	input	logic read_en,
+	input  logic[2:0] 	rw_ad,
+	input  logic[31:0]	write_data,
+	output logic[31:0]	read_data,
+	//input  logic[2:0] 	rw_ad,
+	//input  logic[31:0]	write_data,
+	//output logic[31:0]	read_data,
 	// exported signals
-	input				RXD,
-	output			TXD, 
-	output 			UART_DIR,
-	output			debug
+	input		logic		RXD,
+	output	logic    TXD, 
+	output 	logic    UART_DIR,
+	output	logic    debug
 );
 
 logic 			baud_clk, TXD_done, RXD_enable, RXD_done;

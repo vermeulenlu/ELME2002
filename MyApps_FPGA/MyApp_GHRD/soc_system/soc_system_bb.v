@@ -1,8 +1,6 @@
 
 module soc_system (
 	address_external_connection_export,
-	button_pio_external_connection_export,
-	change_frequency_led_0_external_connection_export,
 	clk_clk,
 	clk_hps_external_connection_export,
 	dipsw_pio_external_connection_export,
@@ -59,6 +57,10 @@ module soc_system (
 	hps_0_hps_io_hps_io_gpio_inst_GPIO53,
 	hps_0_hps_io_hps_io_gpio_inst_GPIO54,
 	hps_0_hps_io_hps_io_gpio_inst_GPIO61,
+	i2c_serial_export_sda_in,
+	i2c_serial_export_scl_in,
+	i2c_serial_export_sda_oe,
+	i2c_serial_export_scl_oe,
 	led_pio_external_connection_export,
 	memory_mem_a,
 	memory_mem_ba,
@@ -76,22 +78,19 @@ module soc_system (
 	memory_mem_odt,
 	memory_mem_dm,
 	memory_oct_rzqin,
+	pi_data_angle_external_connection_export,
+	pi_data_x_external_connection_export,
+	pi_data_y_external_connection_export,
 	pio_timer_external_connection_export,
 	read_external_connection_export,
 	readdata_rxd_external_connection_export,
 	reset_reset_n,
 	speed_left_external_connection_export,
 	speed_right_external_connection_export,
-	spi_raspberrypi_external_connection_MISO,
-	spi_raspberrypi_external_connection_MOSI,
-	spi_raspberrypi_external_connection_SCLK,
-	spi_raspberrypi_external_connection_SS_n,
 	write_external_connection_export,
 	writedata_txd_external_connection_export);	
 
 	output	[2:0]	address_external_connection_export;
-	input	[1:0]	button_pio_external_connection_export;
-	output	[25:0]	change_frequency_led_0_external_connection_export;
 	input		clk_clk;
 	output		clk_hps_external_connection_export;
 	input	[3:0]	dipsw_pio_external_connection_export;
@@ -148,6 +147,10 @@ module soc_system (
 	inout		hps_0_hps_io_hps_io_gpio_inst_GPIO53;
 	inout		hps_0_hps_io_hps_io_gpio_inst_GPIO54;
 	inout		hps_0_hps_io_hps_io_gpio_inst_GPIO61;
+	input		i2c_serial_export_sda_in;
+	input		i2c_serial_export_scl_in;
+	output		i2c_serial_export_sda_oe;
+	output		i2c_serial_export_scl_oe;
 	output	[6:0]	led_pio_external_connection_export;
 	output	[14:0]	memory_mem_a;
 	output	[2:0]	memory_mem_ba;
@@ -165,16 +168,15 @@ module soc_system (
 	output		memory_mem_odt;
 	output	[3:0]	memory_mem_dm;
 	input		memory_oct_rzqin;
+	input	[31:0]	pi_data_angle_external_connection_export;
+	input	[31:0]	pi_data_x_external_connection_export;
+	input	[31:0]	pi_data_y_external_connection_export;
 	input	[31:0]	pio_timer_external_connection_export;
 	output		read_external_connection_export;
 	input	[31:0]	readdata_rxd_external_connection_export;
 	input		reset_reset_n;
 	input	[31:0]	speed_left_external_connection_export;
 	input	[31:0]	speed_right_external_connection_export;
-	output		spi_raspberrypi_external_connection_MISO;
-	input		spi_raspberrypi_external_connection_MOSI;
-	input		spi_raspberrypi_external_connection_SCLK;
-	input		spi_raspberrypi_external_connection_SS_n;
 	output		write_external_connection_export;
 	output	[31:0]	writedata_txd_external_connection_export;
 endmodule

@@ -12,8 +12,8 @@ module DE10_NANO_SoC_GHRD(
 	input 		          		ADC_SDO,
 
 	//////////// ARDUINO //////////
-	inout 		    [15:0]		ARDUINO_IO,
-	inout 		          		ARDUINO_RESET_N,
+	//inout 		    [15:0]		ARDUINO_IO,
+	//inout 		          		ARDUINO_RESET_N,
 
 	//////////// CLOCK //////////
 	input 		          		FPGA_CLK1_50,
@@ -21,18 +21,18 @@ module DE10_NANO_SoC_GHRD(
 	input 		          		FPGA_CLK3_50,
 
 	//////////// HDMI //////////
-	inout 		          		HDMI_I2C_SCL,
-	inout 		          		HDMI_I2C_SDA,
-	inout 		          		HDMI_I2S,
-	inout 		          		HDMI_LRCLK,
-	inout 		          		HDMI_MCLK,
-	inout 		          		HDMI_SCLK,
-	output		          		HDMI_TX_CLK,
-	output		          		HDMI_TX_DE,
-	output		    [23:0]		HDMI_TX_D,
-	output		          		HDMI_TX_HS,
-	input 		          		HDMI_TX_INT,
-	output		          		HDMI_TX_VS,
+	//inout 		          		HDMI_I2C_SCL,
+	//inout 		          		HDMI_I2C_SDA,
+	//inout 		          		HDMI_I2S,
+	//inout 		          		HDMI_LRCLK,
+	//inout 		          		HDMI_MCLK,
+	//inout 		          		HDMI_SCLK,
+	//output		          		HDMI_TX_CLK,
+	//output		          		HDMI_TX_DE,
+	//output		    [23:0]		HDMI_TX_D,
+	//output		          		HDMI_TX_HS,
+	//input 		          		HDMI_TX_INT,
+	//output		          		HDMI_TX_VS,
 
 	//////////// HPS //////////
 	inout 		          		HPS_CONV_USB_N,
@@ -121,6 +121,7 @@ wire                fpga_clk_50_3;
 
 assign LED[7: 1] = fpga_led_internal;
 assign fpga_clk_50 = FPGA_CLK1_50; 
+
 assign fpga_clk_50_2 = FPGA_CLK2_50;
 assign fpga_clk_50_3 = FPGA_CLK3_50;
 
@@ -136,14 +137,35 @@ assign spi_mosi     	= GPIO_1[17];			// MOSI = pin 20 = GPIO_15 (DE0-Nano ) = GP
 	
 assign GPIO_1[15] = spi_cs ? 1'bz : spi_miso;  	// MISO = pin 18 = GPIO_13 (DE0-Nano ) = GPIO_15 for DE10-Nano
 
+
 // Dynamixel
 wire TXD, RXD, Direction_Port;
 
 assign GPIO_0[20]  = Direction_Port;	
 assign GPIO_0[24]  = TXD; 
 assign RXD 		    = GPIO_0[22];
-//assign DRAM_CLK   = CLOCK_50;
-// Encoders
+//assign GPIO_1[20]  = Direction_Port;	
+//assign GPIO_1[24]  = TXD; 
+//assign RXD 		    = GPIO_1[22];
+
+
+// I2C interface
+wire 		sda_in;
+wire 		scl_in;
+wire 		sda_oe;
+wire 		scl_oe;
+
+assign scl_in = GPIO_0[26];
+assign GPIO_0[26] = scl_oe ? 1'b0 : 1'bz;
+
+assign sda_in = GPIO_0[28];
+assign GPIO_0[28] = sda_oe ? 1'b0 : 1'bz;
+
+//assign scl_in = GPIO_1[26];
+//assign GPIO_1[26] = scl_oe ? 1'b0 : 1'bz;
+
+//assign sda_in = GPIO_1[28];
+//assign GPIO_1[28] = sda_oe ? 1'b0 : 1'bz;
 
 
 
@@ -230,20 +252,14 @@ soc_system u0(
                //FPGA Partion
                .led_pio_external_connection_export(fpga_led_internal), 
                .dipsw_pio_external_connection_export(SW),                   
-               .button_pio_external_connection_export(fpga_debounced_buttons),
                                                                 
-               .spi_raspberrypi_external_connection_MISO(spi_miso),
-               .spi_raspberrypi_external_connection_MOSI(spi_mosi),
-               .spi_raspberrypi_external_connection_SCLK(spi_clk),
-               .spi_raspberrypi_external_connection_SS_n(spi_cs),           
-					//		
 			      .hps_0_h2f_reset_reset_n(hps_fpga_reset_n),                  //  hps_0_h2f_reset.reset_n
                .hps_0_f2h_cold_reset_req_reset_n(~hps_cold_reset),          //  hps_0_f2h_cold_reset_req.reset_n
                .hps_0_f2h_debug_reset_req_reset_n(~hps_debug_reset),        //  hps_0_f2h_debug_reset_req.reset_n
                .hps_0_f2h_stm_hw_events_stm_hwevents(stm_hw_events),        //  hps_0_f2h_stm_hw_events.stm_hwevents
                .hps_0_f2h_warm_reset_req_reset_n(~hps_warm_reset),          //  hps_0_f2h_warm_reset_req.reset_n
 					//
-					.change_frequency_led_0_external_connection_export(CycleNb),
+					//.change_frequency_led_0_external_connection_export(CycleNb),
 					// dynamixel 
 					.writedata_txd_external_connection_export(writeData_TXD),          //          writedata_txd_external_connection.export
 					.readdata_rxd_external_connection_export(readData_RXD),           //           readdata_rxd_external_connection.export
@@ -254,8 +270,15 @@ soc_system u0(
 					//Encoders 
 					.speed_left_external_connection_export(speed_left_encoder), 
 					.speed_right_external_connection_export(speed_right_encoder),
-					.pio_timer_external_connection_export(TIMER_FOR_HPS)
-					
+					.pio_timer_external_connection_export(TIMER_FOR_HPS),
+					//I2C
+					.i2c_serial_export_sda_in(sda_in),                          //                          i2c_serial_export.sda_in
+					.i2c_serial_export_scl_in(scl_in),                          //                                           .scl_in
+					.i2c_serial_export_sda_oe(sda_oe),                          //                                           .sda_oe
+					.i2c_serial_export_scl_oe(scl_oe),                          //                         
+					.pi_data_x_external_connection_export(PI_Data_x),
+					.pi_data_y_external_connection_export(PI_Data_y),
+					.pi_data_angle_external_connection_export(PI_Data_angle)
            );
 
 // Debounce logic to clean out glitches within 1ms
@@ -316,7 +339,7 @@ wire			reset_HPS;
 wire 			write;
 wire			read;
 wire			debug;
-UART_Dynamixel (
+UART_Dynamixel dyna(
 				.clk(fpga_clk_50),
 				.reset(reset_HPS),
 				.write_en(write),
@@ -324,7 +347,7 @@ UART_Dynamixel (
 				.rw_ad(address),
 				.write_data(writeData_TXD),
 				.read_data(readData_RXD),
-	// exported signals
+				// exported signals
 				.RXD(RXD),
 				.TXD(TXD), 
 				.UART_DIR(Direction_Port),
@@ -352,7 +375,7 @@ assign speed_right_encoder = (32'b0 | speeds[15:0] );
 
 wire [31:0] TIMER_FOR_HPS;
 
-Vitesse(
+Vitesse vitesse (
 				.a(input_a_left_encoder),
 				.b(input_b_left_encoder),
 				.c(input_a_right_encoder),
@@ -360,10 +383,47 @@ Vitesse(
 				.clk(fpga_clk_50_2),
 				.res(speeds)
 );
-timer_for_hps(
+
+timer_for_hps timer_hps(
 				.clk(fpga_clk_50_3),
 				.timer(TIMER_FOR_HPS)
 );
+
+
+//=======================================================
+//  SPI
+//=======================================================
+	
+	
+	//elements ajoutes au SPI
+	wire [31:0]  DataToSend,Data_Write;
+	reg [31:0]  PI_Data_x, PI_Data_y, PI_Data_angle, ballec;
+	wire [7:0]	 DataAdr;
+	wire			 RAM_we; //AJOUT I2C
+	
+	spi_slave spi_slave_instance(
+		.SPI_CLK    (spi_clk),			 //input
+		.SPI_CS     (spi_cs),			 //input
+		.SPI_MOSI   (spi_mosi),			 //input
+		.SPI_MISO   (spi_miso),			 //input
+		.Data_Addr  (DataAdr),			 //output 	(renvoie l'adresse ou il faut lire l'info)	
+		.Data_Read  (DataToSend),		 //input		(avec DataAdr on va dans notre "memoire" et on renvoit DataTosend pour le mettre sur le PI)
+		.data_fromPI(Data_Write),		 //output
+		.Clk        (fpga_clk_50_3),				 //input
+		.RAM_we		(RAM_we)				 //output
+	);
+	
+	
+	always @(posedge fpga_clk_50_3) begin
+		if(RAM_we) begin
+			case(DataAdr)
+				8'b10000001 :  PI_Data_x <= Data_Write;
+				8'b10000010	:	PI_Data_y <= Data_Write;
+				8'b10000100	:	PI_Data_angle <= Data_Write;
+				default :  ballec = Data_Write;
+			endcase
+		end
+	end
 
 
 endmodule
